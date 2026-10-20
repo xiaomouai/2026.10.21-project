@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.next-dev/
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+.env*
+!.env.example
+.research/
+.workbuddy/

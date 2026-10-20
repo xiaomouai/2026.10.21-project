@@ -1,0 +1,32 @@
+# ---------- 依赖与构建产物（容器内自行安装 / 构建） ----------
+node_modules
+.next
+.npm
+.cache
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# ---------- 版本控制 / 本地工作区 ----------
+.git
+.workbuddy
+
+# ---------- 环境变量与密钥：禁止进入镜像层 ----------
+# 注意：.dockerignore 与 .gitignore 不同，一旦整体排除就无法再用 ! 规则恢复。
+# 若将来确有需要打进镜像的 .env.example，请显式写成 /env.example 形式放行。
+.env
+.env.*
+
+# ---------- 本地数据：SQLite 属隐私数据 ----------
+# 运行期数据由 docker-compose 的 volume（./data:/app/data）挂载，
+# 构建上下文里绝不能带上真实数据库文件。
+data
+
+# ---------- 开发 / 临时 / 文档类文件 ----------
+*.md
+*.log
+*.tmp
+*.zip
+.DS_Store
+# 保留 next-env.d.ts（tsconfig 引用它，缺文件会报类型错误）
+tsconfig.tsbuildinfo

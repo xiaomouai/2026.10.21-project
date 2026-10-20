@@ -1,0 +1,25 @@
+node_modules
+.next
+.git
+.gitignore
+
+# SQLite 数据（容器内首次启动自建库 + 种子数据，不要把本地数据打进镜像）
+data
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# 本地/隐私目录
+.workbuddy
+.env
+.env*.local
+
+*.log
+npm-debug.log*
+.DS_Store
+
+Dockerfile
+.dockerignore
+docker-compose*.yml
+README.md

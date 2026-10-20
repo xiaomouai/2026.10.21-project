@@ -1,0 +1,18 @@
+# 知栈 xiaobao-saas：单容器 + 数据卷（sqlite 持久化在 /data）
+# 用法：docker compose up -d --build，访问 http://localhost:3000
+
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - XIAOBAO_DB=/data/xiaobao.db
+      # 模拟支付开关（月租与未绑码店铺的收银台）：生产可去掉
+      - WECHAT_MOCK_ENABLED=true
+    volumes:
+      - xiaobao-data:/data
+    restart: unless-stopped
+
+volumes:
+  xiaobao-data:

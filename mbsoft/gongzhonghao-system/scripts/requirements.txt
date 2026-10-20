@@ -1,0 +1,17 @@
+# 公众号增长操作系统 · 依赖清单
+# 核心脚本仅依赖 Python 3.9+ 标准库（csv / pathlib / argparse / urllib 等）。
+# 以下为可选依赖，按需安装：
+
+# 数据分析（周/月报表可视化增强，脚本本体不强制）
+pandas>=2.0
+matplotlib>=3.7
+
+# 通知渠道（notify.py 当前用 urllib，以下为备用）
+# requests>=2.31
+
+# 数据源接入（接入公众号/企微/广告平台 API 时按需添加）
+# wechatpy>=1.8
+# pyexcel  # 如需 Excel 导出
+
+# 远程备份
+# rclone  # 命令行工具，非 pip

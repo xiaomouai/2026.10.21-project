@@ -1,0 +1,541 @@
+// ============================================================================
+// UniCRM · 统一数据模型（整合产物）
+// ----------------------------------------------------------------------------
+// 模型来源标注：
+//   [认证]  better-auth 标准模型（User / Session / Account / Verification）
+//   [SaaS]  新建 · 多租户底座（Organization / OrganizationMember）
+//   [CRM·A] 迁移自 nextcrm-app v0.22（crm_Accounts/Contacts/Leads/... 业务语义）
+//   [CRM·C] 迁移自 crm/ Comp AI v1.15（Company/Contact/Deal/Activity 命名语义）
+//   [AGENT] 迁移自 crm/ Comp AI agent 运行时资产（AgentTask/AgentRun/AgentRunEvent）
+//   [DEVOPS]新建 · 多 Agent 编码任务日志（AgentJob，本次整合以多 agent 方式真实落地）
+//
+// 多租户约定（SaaS 架构层先落地）：
+//   所有租户级业务表均含 orgId 列 + 索引；应用层通过 OrganizationMember 判定
+//   当前组织后写入/过滤（见 apps/web 租户上下文）。后续逐周将更多业务表纳入。
+//
+// 数据库兼容约定（本地 SQLite 可立即运行，生产平滑切 PostgreSQL）：
+//   * 不使用 enum / citext / 数组等 DB 专有类型 —— 状态一律 String + 注释约定
+//   * 金额用 Decimal，主键统一 String cuid
+//   * provider 切 pg 时仅需改 datasource + 依赖 adapter
+// ============================================================================
+
+datasource db {
+  provider = "sqlite" // 生产切换为 "postgresql"
+  // 连接 URL 由 prisma.config.ts 提供（Prisma 7 约定）
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================================================
+// 认证 [better-auth 标准模型]
+// ============================================================================
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  memberships   OrganizationMember[]
+  companies     Company[]       @relation("CompanyOwner")
+  contacts      Contact[]       @relation("ContactOwner")
+  leads         Lead[]          @relation("LeadOwner")
+  opportunities Opportunity[]   @relation("OpportunityOwner")
+  activities    Activity[]      @relation("ActivityOwner")
+  agentJobs     AgentJob[]      @relation("AgentJobOwner")
+  decidedFacts  AiFact[]        @relation("AiFactDecider")
+  salesOkrs     SalesOkr[]      @relation("SalesOkrCreator")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ============================================================================
+// SaaS 多租户底座 [SaaS]
+// ============================================================================
+
+// 组织（租户）。一个组织拥有一套独立的 CRM 数据视图。
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique // 用于工作台 URL：/w/{slug}
+  // plan: FREE / STARTER / PRO / ENTERPRISE
+  plan      String   @default("FREE")
+  // status: TRIALING / ACTIVE / PAST_DUE / SUSPENDED
+  status    String   @default("TRIALING")
+  trialEndsAt DateTime?
+  industry  String?
+  size      String? // 企业规模标签：1-10 / 11-50 / 51-200 / 200+
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   OrganizationMember[]
+  companies Company[]
+  contacts  Contact[]
+  leads     Lead[]
+  opportunities Opportunity[]
+  activities Activity[]
+  agentTasks AgentTask[]
+  agentRuns  AgentRun[]
+  agentJobs  AgentJob[]
+  aiFacts    AiFact[]
+  salesOkrs  SalesOkr[]
+}
+
+// 组织成员（用户 ↔ 组织多对多，带角色）
+model OrganizationMember {
+  id     String @id @default(cuid())
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // role: OWNER / ADMIN / MEMBER / VIEWER
+  role   String @default("MEMBER")
+  joinedAt DateTime @default(now())
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+// ============================================================================
+// CRM 核心业务 [CRM·A + CRM·C 语义整合]
+// 命名采用 Comp AI 单数语义，业务字段吸收 nextcrm-app 的完整度
+// ============================================================================
+
+// 企业客户（nextcrm: crm_Accounts ≡ Comp AI: Company）
+model Company {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name       String
+  // status: ACTIVE / INACTIVE / PROSPECT / CHURNED
+  status     String   @default("ACTIVE")
+  industry   String?  // 行业字典：crm_Industry_Type（迁移待办）
+  website    String?
+  phone      String?
+  email      String?
+  address    String?
+  // leadSource: 来源字典（迁移待办）
+  leadSource String?
+  ownerUserId String?
+  owner      User?    @relation("CompanyOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  note       String?
+  // 团队规模：1-10 / 11-50 / 51-200 / 200+（AI 建档可提案补全）
+  size       String?
+  // ---- AI 建档元信息 [AI·NEW] ----
+  aiStatus     String    @default("NONE")
+  aiMeta       Json?
+  aiEnrichedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  contacts       Contact[]
+  opportunities  Opportunity[]
+  activities     Activity[]
+
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, name])
+}
+
+// 联系人
+model Contact {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  name        String
+  title       String?
+  email       String?
+  phone       String?
+  wechat      String?
+  // status: ACTIVE / INACTIVE
+  status      String   @default("ACTIVE")
+  leadSource  String?
+  ownerUserId String?
+  owner       User?    @relation("ContactOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  opportunities Opportunity[]
+  activities    Activity[]
+
+  @@index([orgId])
+  @@index([orgId, companyId])
+  @@index([orgId, email])
+}
+
+// 销售线索（nextcrm-app 独有模块；Comp AI 无直接对应）
+model Lead {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  company     String?  // 线索所属公司名（可能尚未建档）
+  email       String?
+  phone       String?
+  // status: NEW / CONTACTED / QUALIFIED / UNQUALIFIED / CONVERTED / LOST
+  status      String   @default("NEW")
+  source      String?  // 来源：网站/转介绍/广告/展会/...
+  score       Int      @default(0)
+  ownerUserId String?
+  owner       User?    @relation("LeadOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  note        String?
+  convertedAt DateTime?
+  // ---- AI 建档元信息 [AI·NEW] ----
+  // aiStatus: NONE / PENDING(有待审提案) / ENRICHED
+  aiStatus     String    @default("NONE")
+  // aiMeta Json: { field: { confidence, band, sourceUrl, factId, appliedAt } }
+  aiMeta       Json?
+  aiEnrichedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activities Activity[]
+
+  @@index([orgId])
+  @@index([orgId, status])
+}
+
+// 商机（nextcrm: crm_Opportunities ≡ Comp AI: Deal）
+model Opportunity {
+  id           String    @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contactId    String?
+  contact      Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  name         String
+  amount       Decimal   @default(0)
+  currency     String    @default("CNY")
+  // stage: 销售阶段（funnel-settings 可配置，迁移待办）默认：QUALIFICATION/ANALYSIS/PROPOSAL/NEGOTIATION/WON/LOST
+  stage        String    @default("QUALIFICATION")
+  probability  Int       @default(10) // 0-100
+  expectedCloseAt DateTime?
+  // status: OPEN / WON / LOST（stage=WON/LOST 时冗余同步）
+  status       String    @default("OPEN")
+  ownerUserId  String?
+  owner        User?     @relation("OpportunityOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  note         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  activities Activity[]
+
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, stage])
+}
+
+// 跟进活动（通话/邮件/会议/拜访/备注）
+model Activity {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // type: CALL / EMAIL / MEETING / VISIT / NOTE / TASK
+  type        String
+  subject     String
+  detail      String?
+  // 关联业务实体（多态）：companyId / contactId / opportunityId / leadId 至少其一
+  companyId   String?
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contactId   String?
+  contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  opportunityId String?
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  leadId      String?
+  lead        Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  ownerUserId String?
+  owner       User?     @relation("ActivityOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  // status: OPEN / DONE / CANCELLED
+  status      String    @default("OPEN")
+  // 计划时间：打算何时执行（提醒中心按它判断「即将到期」）
+  plannedAt   DateTime?
+  // 截止时间：最迟何时完成（提醒中心按它判断「逾期」）
+  dueAt       DateTime?
+  // SOP 六阶段：FIRST_CONTACT / NEEDS / OPPORTUNITY / PROPOSAL / NEGOTIATION / CLOSE
+  sopStage    String?
+  happenedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orgId])
+  @@index([orgId, happenedAt])
+  @@index([orgId, status, dueAt])
+  @@index([orgId, status, plannedAt])
+  @@index([orgId, companyId])
+  @@index([orgId, opportunityId])
+}
+
+model SalesOkr {
+  id                  String   @id @default(cuid())
+  orgId               String
+  org                 Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdById         String?
+  createdBy           User?    @relation("SalesOkrCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  name                String
+  targetAmount        Decimal  @default(0)
+  averageDealAmount   Decimal  @default(0)
+  leadToOpportunityRate Int    @default(20)
+  opportunityToWonRate  Int    @default(25)
+  targetCompanies     Int      @default(0)
+  targetLeads         Int      @default(0)
+  targetOpportunities Int      @default(0)
+  startDate           DateTime
+  endDate             DateTime
+  status              String   @default("ACTIVE")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([orgId, status])
+  @@index([orgId, startDate, endDate])
+}
+
+// ============================================================================
+// AI Agent 运行时资产 [AGENT · 迁移自 Comp AI]
+// 支撑未来数据研究 agent / eve 引擎 / 富化任务的调度与回放
+// ============================================================================
+
+// Agent 级任务（队列项，可被调度器批量领取；多租户下按 orgId 归属）
+model AgentTask {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // kind: e.g. "research_contact" / "enrich_company" / "write_brief"
+  kind        String
+  // status: QUEUED / RUNNING / DONE / FAILED / CANCELLED
+  status      String   @default("QUEUED")
+  priority    Int      @default(0)
+  // ---- 租约队列 / 双泳道 [AI·NEW · P1] ----
+  // lane: fast（确定性规则，便宜可控） / llm（需要模型推理）
+  lane        String   @default("fast")
+  // 重试计数与上限（达到上限转 FAILED）
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  // 租约：领取后设置 leaseOwner + leasedUntil；崩溃时靠租约过期被回收
+  leaseOwner  String?
+  leasedUntil DateTime?
+  input       Json?
+  output      Json?
+  error       String?
+  scheduledFor DateTime?
+  runs        AgentRun[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId, status])
+  @@index([orgId, kind])
+  // 租约队列领取扫描：status + lane + dueAt + priority
+  @@index([status, lane, scheduledFor, priority])
+  @@index([status, leasedUntil])
+}
+
+// Agent 运行记录（一次具体执行，含耗时/结果摘要，供审计与回放）
+model AgentRun {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  taskId     String?
+  task       AgentTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  agentName  String   // e.g. eve / enrichment / agent-builder
+  // status: STARTED / COMPLETED / FAILED
+  status     String   @default("STARTED")
+  source     String?  // 触发源：schedule / api / manual
+  modelId    String?
+  durationMs Int?
+  result     Json?
+  error      String?
+  // 幂等键：24h 内同 key 跳过重跑（[AI·NEW] 借鉴 crm/ AgentRun.idempotencyKey）
+  idempotencyKey String?
+  // 记账预留（P1 落地）
+  costUsd      Float?
+  inputTokens  Int?
+  outputTokens Int?
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+  createdAt  DateTime @default(now())
+  events     AgentRunEvent[]
+
+  @@index([orgId, startedAt])
+  @@index([orgId, agentName])
+  @@index([orgId, status])
+}
+
+// Agent 运行事件流（逐步轨迹）
+model AgentRunEvent {
+  id      String   @id @default(cuid())
+  runId   String
+  run     AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  // type: tool_call / tool_result / message / error / milestone
+  type    String
+  name    String?  // 工具名 / 事件名
+  payload Json?
+  ts      DateTime @default(now())
+
+  @@index([runId])
+}
+
+// ============================================================================
+// 多 Agent 编码任务日志 [DEVOPS · 全新模块]
+// ----------------------------------------------------------------------------
+// 用途：记录多个编码 agent 在本系统上的工程任务（分支 / 状态 / 耗时 / 结果），
+//       供项目 lead 在一个看板里观察多 agent 并行开发的进度。
+// 数据入口：
+//   1. UI 登记（/w/{slug}/dev/agent-jobs）
+//   2. Server Action：packages 级 lib/devAgentLog.ts
+//   3. REST 上报：POST /api/dev/agent-jobs（供外部编码 agent 调用，见 docs）
+// 首批数据 = 本次「两套源码整合」真实执行的多 agent 任务（见 prisma/seed.ts 与 docs/MULTI_AGENT_LOG.md）
+// ============================================================================
+
+model AgentJob {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // 编码 agent 角色（对齐项目领地制）：lead / be / fe-canvas / fe-ui / pay / qa / docs
+  agentRole   String
+  // 任务编号（对齐 agent/<角色>/TASK-xxx 分支惯例）
+  taskCode    String?
+  title       String
+  description String?
+  // 关联代码分支
+  branch      String?
+  // status: QUEUED / RUNNING / REVIEW / BLOCKED / DONE / FAILED
+  status      String   @default("QUEUED")
+  priority    String   @default("P2") // P0 紧急 / P1 高 / P2 中 / P3 低
+  progress    Int      @default(0)    // 0-100
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  durationMs  Int?
+  commitSha   String?
+  resultSummary String? // agent 自述结果摘要
+  error       String?
+  // 关联（任务可拆父/子）
+  parentJobId String?
+  parentJob   AgentJob?  @relation("AgentJobChildren", fields: [parentJobId], references: [id], onDelete: SetNull)
+  children    AgentJob[] @relation("AgentJobChildren")
+  // tags 逗号分隔：如 "schema,merge,migration"
+  tags        String?
+  createdById String?
+  createdBy   User?    @relation("AgentJobOwner", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId, status])
+  @@index([orgId, createdAt])
+  @@index([orgId, agentRole])
+}
+
+// ============================================================================
+// AI 事实与证据层 [AI·NEW · P0 AI-Native 最小闭环]
+// ----------------------------------------------------------------------------
+// 借鉴：crm/ (Comp AI) ContactFact + agent/lib/{evidence,facts}.ts
+//       nextcrm-app EnrichmentResult{confidence, sourceContext}
+//
+// 设计要点：
+//   1) AI 永不直接改主表 —— 一切建议先入本表（PROPOSED），人拍板后才落主表
+//   2) 置信度外部定价 —— 由「证据类型权重表」合成，不采信 LLM 自评
+//   3) 人填值优先 —— 主表有值但 aiMeta 无该字段 ⇒ 视为人填，AI 不得覆盖
+//   4) 全链路可追溯 —— 每条提案挂 runId，可在 AgentRun 事件流回放
+// ============================================================================
+
+model AiFact {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  // 目标实体：LEAD / COMPANY / CONTACT（String 存储，见 AI_ENTITY_TYPE 字典）
+  entityType String
+  entityId   String
+  // 目标字段：industry / website / size / score / title ...
+  field      String
+  // AI 建议值（统一存字符串，写入主表时按字段类型转换）
+  value      String
+  // 提案时的原值快照，供 UI 对比
+  currentValue String?
+
+  // 置信度（0-1）与分档：VERIFIED / PROBABLE / POSSIBLE
+  // VERIFIED 需 ≥0.85 且含 primary 证据（官网 / 工商 / 用户亲填）
+  confidence Float    @default(0)
+  band       String
+  // evidence Json: [{ type, weight, sourceUrl, snippet, retrievedAt }]
+  evidence   Json?
+  sourceUrl  String?
+
+  // status: PROPOSED → APPLIED / SUPERSEDED / DISMISSED
+  status     String   @default("PROPOSED")
+  // 未采纳原因：humanOwns / lowConfidence / dismissed / superseded
+  reason     String?
+
+  runId      String?
+  decidedById String?
+  decidedBy  User?    @relation("AiFactDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+  decidedAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orgId, entityType, entityId, status])
+  @@index([orgId, status])
+  @@index([runId])
+}
+
+// ============================================================================
+// 全局运行时配置 [CONFIG]
+// ----------------------------------------------------------------------------
+// 用于把「需运维编辑、但不想改 .env / 重启」的配置（如 LLM 供应商与密钥）
+// 下沉到数据库，由管理界面（设置 → AI 能力）读写，保存即生效。
+// key 唯一；value 存 JSON 字符串。当前使用的 key：
+//   - llm：LLM 通道配置（provider / model / baseUrl / 各供应商 Key）
+// 注意：全局级（非租户级）配置；API Key 明文存库，任何下发客户端的视图必须脱敏。
+// ============================================================================
+
+model AppConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String // JSON 字符串
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

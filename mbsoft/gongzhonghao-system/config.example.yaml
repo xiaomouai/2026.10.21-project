@@ -1,0 +1,35 @@
+# 配置样例（复制为 config.yaml 后修改）
+
+# 公众号账号
+accounts:
+  main:
+    name: "你的公众号名称"
+    app_id: "wx_xxx"
+    app_secret: "xxx"   # 生产环境建议放 .env
+    publish_schedule: "20:30"   # 默认发布时间
+
+# 分发渠道
+channels:
+  - name: 知乎
+    enabled: true
+  - name: 小红书
+    enabled: true
+  - name: 头条
+    enabled: false
+
+# 通知
+notify:
+  daily: true      # 每日日报推送
+  weekly: true     # 周复盘推送
+  channel: wecom   # wecom / lark / email
+
+# 自动化阈值（触发告警）
+thresholds:
+  reads_min: 100
+  cta_ctr_min: 3
+  conversion_min: 10
+
+# 备份
+backup:
+  local_dir: backups/
+  remote: rclone_remote:gongzhonghao

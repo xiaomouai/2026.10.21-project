@@ -1,0 +1,35 @@
+{
+  "name": "@ucrm/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./constants": "./src/constants.ts"
+  },
+  "scripts": {
+    "db:generate": "prisma generate --config prisma.config.ts",
+    "db:migrate": "prisma migrate dev --config prisma.config.ts",
+    "db:deploy": "prisma migrate deploy --config prisma.config.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio --config prisma.config.ts",
+    "db:reset": "prisma migrate reset --config prisma.config.ts",
+    "check-types": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "7.6.0",
+    "@prisma/adapter-pg": "7.6.0",
+    "@prisma/client": "7.6.0",
+    "pg": "^8.13.1",
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^17.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.3.0",
+    "prisma": "7.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

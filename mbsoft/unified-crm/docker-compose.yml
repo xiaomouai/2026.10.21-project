@@ -1,0 +1,53 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22-bookworm-slim}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com/}
+    # ⚠️ env_file 才是"把变量注入容器"的那一步。
+    #    CLI 上的 --env-file 只用于 compose 文件里的 ${VAR} 插值，不会自动进容器。
+    #    缺了这段，DASHSCOPE_API_KEY / UCRM_API_KEYS 等 AI 变量在容器里全为空。
+    env_file:
+      - .env.docker
+    environment:
+      # 固定值：容器内 PG 服务名与端口（docker-wait.js 用）
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "${WEB_PORT:-81}:81"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:81/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
+    # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB 全部来自 .env.docker，
+    # 保证与 app 的 DATABASE_URL 同源，不会出现"库密码改了但连接串没改"。
+    env_file:
+      - .env.docker
+    environment:
+      POSTGRES_INITDB_ARGS: "--shared_buffers=128MB --work_mem=16MB"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:

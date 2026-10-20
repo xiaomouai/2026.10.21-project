@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+/* ================================================================== */
+/*  主题语义变量：三套背景（白色 / 浅色羊皮纸 / 深色）                    */
+/*  <html data-theme="light|parchment|dark"> 控制全局观感               */
+/* ================================================================== */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --app-bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --fg: #0f172a;
+  --fg-muted: #475569;
+  --fg-subtle: #94a3b8;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --accent: #4f46e5;
+}
+
+[data-theme="parchment"] {
+  color-scheme: light;
+  --app-bg: #f1e7d0;
+  --surface: #fbf5e6;
+  --surface-2: #f3e8cf;
+  --fg: #3b2f1e;
+  --fg-muted: #6b5d44;
+  --fg-subtle: #9a8a6b;
+  --border: #d9c9a3;
+  --border-strong: #c4b187;
+  --accent: #8b5e34;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #0f1626;
+  --fg: #e6edf6;
+  --fg-muted: #9fb0c3;
+  --fg-subtle: #64748b;
+  --border: #1e293b;
+  --border-strong: #334155;
+  --accent: #6366f1;
+}
+
+/* 暴露为 Tailwind 语义工具类：
+   bg-app-bg / bg-surface / bg-surface-2
+   text-fg / text-fg-muted / text-fg-subtle
+   border-border / border-border-strong / text-accent / bg-accent */
+@theme inline {
+  --color-app-bg: var(--app-bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--app-bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 细滚动条（随主题） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ================================================================== */
+/*  存量工具类兜底覆盖：让已有业务页/组件随主题切换                      */
+/*  （与 .bg-white/.text-slate-* 等同特异性基础上用 html[data-theme] 提升） */
+/* ================================================================== */
+[data-theme="parchment"] .bg-white,
+[data-theme="dark"] .bg-white {
+  background-color: var(--surface);
+}
+[data-theme="parchment"] .bg-slate-50,
+[data-theme="dark"] .bg-slate-50 {
+  background-color: var(--surface-2);
+}
+[data-theme="dark"] .bg-slate-100 {
+  background-color: #16203a;
+}
+[data-theme="parchment"] .bg-slate-100 {
+  background-color: #eee1c4;
+}
+
+[data-theme="parchment"] .border-slate-100,
+[data-theme="parchment"] .border-slate-200,
+[data-theme="parchment"] .border-slate-300,
+[data-theme="dark"] .border-slate-100,
+[data-theme="dark"] .border-slate-200,
+[data-theme="dark"] .border-slate-300 {
+  border-color: var(--border);
+}
+
+[data-theme="parchment"] .text-slate-900,
+[data-theme="parchment"] .text-slate-800,
+[data-theme="parchment"] .text-slate-700,
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-slate-700 {
+  color: var(--fg);
+}
+[data-theme="parchment"] .text-slate-600,
+[data-theme="parchment"] .text-slate-500,
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500 {
+  color: var(--fg-muted);
+}
+[data-theme="parchment"] .text-slate-400,
+[data-theme="parchment"] .text-slate-300,
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-slate-300 {
+  color: var(--fg-subtle);
+}
+
+/* 深色下彩色高亮底/文字协调 */
+[data-theme="dark"] .bg-indigo-50 {
+  background-color: #1e2547;
+}
+[data-theme="dark"] .text-indigo-700 {
+  color: #a5b4fc;
+}
+[data-theme="dark"] .text-indigo-600 {
+  color: #818cf8;
+}
+[data-theme="dark"] .bg-rose-50 {
+  background-color: #3a1d29;
+}
+[data-theme="dark"] .text-rose-600 {
+  color: #fda4af;
+}
+[data-theme="dark"] .bg-emerald-50 {
+  background-color: #14331f;
+}
+[data-theme="dark"] .text-emerald-600 {
+  color: #6ee7b7;
+}

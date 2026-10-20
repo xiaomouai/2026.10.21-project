@@ -1,0 +1,23 @@
+{
+  "name": "xiaobao-saas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test test.mjs"
+  },
+  "dependencies": {
+    "next": "14.2.30",
+    "qrcode": "^1.5.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.30",
+    "prettier": "^3.9.6"
+  }
+}

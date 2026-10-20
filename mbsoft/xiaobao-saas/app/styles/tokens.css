@@ -1,0 +1,143 @@
+/* ============================================================
+ * tokens.css —— 设计令牌层
+ * 职责：只定义 CSS 变量（颜色 / 间距 / 圆角 / 字号 / 字族 / 阴影 / 布局尺寸），
+ *       不写任何具体组件样式，供 base / marketing / dashboard 三层引用。
+ * 调性：米白纸感（paper）+ 墨绿墨色（ink）+ 柠檬绿点缀（lime）+ 微信中文字体栈（PingFang SC / 微软雅黑）。
+ * 断点约定（CSS 变量无法用于 media query，此处仅作文档）：
+ *       1024px 中间断点（平板：双列收紧、容器留白）
+ *       760px  移动断点（单列、hero 去掉旋转、按钮纵向）
+ * ============================================================ */
+
+:root {
+  /* ---------- 品牌主色（沿用旧版，禁止随意改动，改动等于全站改版） ---------- */
+  --ink: #17211b;          /* 墨色：主文字、深底、主按钮底 */
+  --paper: #f4f7f2;        /* 米白纸感：页面底色 */
+  --lime: #d8ff62;         /* 柠檬绿：强调色、CTA、数据高亮 */
+  --line: #ccd6ce;         /* 默认分隔线 */
+
+  /* ---------- 中性色阶 ---------- */
+  --text: var(--ink);      /* 正文主色 */
+  --text-soft: #5f6c63;    /* 次级说明文字（旧版 hero p / storeHero p） */
+  --text-mute: #68736b;    /* 弱化文字（旧版 footer / manage span） */
+  --text-legal: #667269;   /* 极弱文字（旧版 detail li span） */
+  --text-invert: #ffffff;  /* 深底上的文字 */
+  --surface: #ffffff;      /* 卡片 / 面板底色 */
+  --surface-soft: #fbfcf9; /* 浅底卡片（比白稍暖，用于嵌套块） */
+  --line-strong: #aebbb1;  /* 输入框等需要更明显描边的场景 */
+  --accent-ink: #527013;   /* 墨绿点缀（旧版 steps b / row em / product>span） */
+  --lime-soft: #e6ff9b;    /* 柠檬绿浅底（旧版 notice 底色） */
+
+  /* ---------- 功能色：成功 / 警告 / 危险 / 信息 ---------- */
+  --ok: #2f7a4f;
+  --ok-soft: #e8f6ec;
+  --warn: #a86a00;
+  --warn-soft: #fdf1d8;
+  --danger: #b3402f;
+  --danger-soft: #fbeae7;
+  --info: #2a5c8a;
+  --info-soft: #eaf1f8;
+
+  /* ---------- 间距（4 的倍数） ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* ---------- 圆角 ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;             /* 输入框 / 小按钮 */
+  --r-md: 7px;             /* 主按钮（旧版 primary/secondary） */
+  --r-lg: 10px;            /* 徽标 / 提示条 */
+  --r-xl: 12px;            /* 小卡片 / 指标卡 */
+  --r-2xl: 14px;           /* 面板 / 商品卡 */
+  --r-3xl: 18px;           /* 大块（hero aside） */
+  --r-full: 999px;         /* 胶囊 */
+
+  /* ---------- 字号 ---------- */
+  --fs-xs: 12px;           /* eyebrow / mock / 角标 */
+  --fs-sm: 13px;           /* footer / 辅助信息 */
+  --fs-base: 16px;         /* 正文 */
+  --fs-md: 19px;           /* 导语 */
+  --fs-lg: 20px;           /* reader lead */
+  --fs-h3: 28px;           /* steps h2 */
+  --fs-h2: 32px;           /* product h2 */
+  --fs-h1: 42px;           /* panel h1 */
+  --fs-display: 58px;      /* 内页大标题（storeHero / detail / dashboard / reader） */
+  --fs-price: 40px;        /* 价格 */
+  --fs-hero: clamp(52px, 7vw, 88px);  /* 首页 hero 大标题，随视口缩放 */
+
+  /* ---------- 字族（微信中文字体栈，全站统一） ---------- */
+  --font-sans: "mp-quote", -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  --font-serif: "mp-quote", -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-sm: 0 1px 2px rgba(23, 33, 27, 0.06);
+  --shadow-md: 0 6px 18px rgba(23, 33, 27, 0.08);
+  --shadow-lime: 12px 12px 0 var(--lime);   /* hero aside 的柠檬绿硬阴影 */
+
+  /* ---------- 布局尺寸 ---------- */
+  --container: 1160px;     /* header / footer / main 最大宽度 */
+  --container-narrow: 760px; /* 阅读页等长文场景 */
+  --header-h: 76px;
+  --gutter: 18px;          /* 移动端左右安全边距 */
+}
+
+/* ============================================================
+ * 主题切换：在 <html data-theme="..."> 上覆盖颜色变量即全站换肤。
+ * 默认（:root 上方）为「浅色」；下面是「羊皮纸」「深色」两套覆写。
+ * 所有组件只引用变量，故无需逐页改动。
+ * ============================================================ */
+
+/* 羊皮纸：暖米黄纸感 + 深棕墨色，复古阅读调性 */
+[data-theme="parchment"] {
+  --paper: #f3e7c9;
+  --ink: #2e2418;
+  --lime: #aeb84a;
+  --line: #d8c9a3;
+  --text-soft: #6b5d44;
+  --text-mute: #7d6e52;
+  --text-legal: #7a6b4e;
+  --text-invert: #f3e7c9;
+  --surface: #faf3df;
+  --surface-soft: #f6efd9;
+  --line-strong: #c4b288;
+  --accent-ink: #6b5a1f;
+  --lime-soft: #e7dfc0;
+  --shadow-sm: 0 1px 2px rgba(46, 36, 24, 0.10);
+  --shadow-md: 0 6px 18px rgba(46, 36, 24, 0.12);
+}
+
+/* 深色：深墨绿黑底 + 浅色文字，强调色保留亮柠檬绿 */
+[data-theme="dark"] {
+  --paper: #14181a;
+  --ink: #e7efe9;
+  --lime: #d8ff62;
+  --line: #2a3330;
+  --text-soft: #a7b3aa;
+  --text-mute: #8c988f;
+  --text-legal: #8a958c;
+  --text-invert: #14181a;
+  --surface: #1d2422;
+  --surface-soft: #232b29;
+  --line-strong: #3a4642;
+  --accent-ink: #a9c75a;
+  --lime-soft: #2c3a1e;
+  --ok: #5fbf86;
+  --ok-soft: #16291d;
+  --warn: #e0a44a;
+  --warn-soft: #2e2415;
+  --danger: #e0876f;
+  --danger-soft: #2e1a16;
+  --info: #6aa8e0;
+  --info-soft: #16242e;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.40);
+  --shadow-lime: 12px 12px 0 var(--lime-soft);
+}

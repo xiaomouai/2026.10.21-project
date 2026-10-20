@@ -1,0 +1,711 @@
+/* ============================================================
+ * dashboard.css —— 控制台面
+ * 职责：创作者中心、我的内容、平台管理等登录后页面的布局样式，
+ *       含页头（dashHead）、指标卡（metrics）、两栏栅格（dashGrid）、
+ *       套餐提示（notice）、商品管理行（manage）、列表行（row）。
+ * 依赖：tokens.css、base.css（panel / field / badge / alert / table 等在 base 层）。
+ * ============================================================ */
+
+/* ---------- 控制台容器与页头 ---------- */
+.dashboard {
+  padding: 65px var(--gutter) 110px;
+}
+
+.dashboard h1,
+.reader h1,
+.detail h1 {
+  font: 700 var(--fs-display) / 1.05 var(--font-serif);
+  margin: 14px 0;
+}
+
+.dashHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.dashHead h1 {
+  font: 700 var(--fs-display) / 1.05 var(--font-serif);
+  margin: 14px 0;
+}
+
+.dashHead p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--fs-md);
+}
+
+/* ---------- 指标卡 ---------- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 30px 0;
+}
+
+.metrics article {
+  background: var(--ink);
+  color: var(--text-invert);
+  padding: 22px;
+  border-radius: var(--r-xl);
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.metrics b {
+  font: 36px var(--font-serif);
+  color: var(--lime);
+  line-height: 1.1;
+}
+
+.metrics span {
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.76);
+}
+
+/* ---------- 两栏栅格与通栏块 ---------- */
+.dashGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.dashGrid .panel {
+  margin: 0;
+}
+
+.wide {
+  margin-top: 18px;
+}
+
+/* ---------- 套餐提示条（可作为 form 使用） ---------- */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  background: var(--lime-soft);
+  padding: 18px;
+  border-radius: var(--r-lg);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.notice b {
+  color: var(--ink);
+}
+
+.notice span {
+  color: var(--text-soft);
+  font-size: calc(var(--fs-sm) + 1px);
+  margin-right: auto;
+}
+
+/* ---------- 商品管理行（左侧信息 + 右侧表单） ---------- */
+.manage {
+  display: grid;
+  grid-template-columns: 0.5fr 1.5fr;
+  gap: 25px;
+  padding: var(--sp-5) 0;
+  border-top: 1px solid var(--line);
+}
+
+.manage > div {
+  display: grid;
+  height: max-content;
+  gap: var(--sp-1);
+}
+
+.manage > div span {
+  color: var(--text-mute);
+  font-size: var(--fs-sm);
+}
+
+.manage form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  align-content: start;
+}
+
+.manage textarea {
+  grid-column: 1 / -1;
+}
+
+.manage form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* ---------- 列表行（订单 / 文章 / 读者） ---------- */
+.row {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 1fr 0.7fr;
+  gap: var(--sp-3);
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  align-items: center;
+  font-size: calc(var(--fs-sm) + 1px);
+}
+
+.row em {
+  font-style: normal;
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
+.row span {
+  color: var(--text-mute);
+}
+
+/* ---------- 控制台内表格与空状态的留白 ---------- */
+.dashboard .table {
+  margin-top: var(--sp-2);
+}
+
+.dashboard .empty {
+  margin-top: var(--sp-4);
+}
+
+/* ---------- 侧边栏 shell（功能 A：左菜单 + 右内容） ---------- */
+.shell {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 30px 20px 26px;
+  border-right: 1px solid var(--line);
+}
+
+.sideBrand {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.sideBrand b {
+  font: 700 22px/1.2 var(--font-serif);
+}
+
+.sideBrand span {
+  color: var(--text-mute);
+  font-size: var(--fs-sm);
+}
+
+.sideNav {
+  display: grid;
+  gap: 4px;
+}
+
+.sideNav a {
+  display: block;
+  padding: 9px 12px;
+  border-left: 3px solid transparent;
+  border-radius: 0 10px 10px 0;
+  color: var(--text-soft);
+  font-weight: 600;
+  font-size: calc(var(--fs-sm) + 1px);
+  text-decoration: none;
+}
+
+.sideNav a:hover {
+  background: var(--lime-soft);
+}
+
+.sideNav a.active {
+  background: var(--lime-soft);
+  border-left-color: var(--lime);
+  color: var(--ink);
+}
+
+.sideFoot {
+  margin-top: auto;
+}
+
+.sideMain {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1080px;
+  padding: 28px 42px 90px;
+}
+
+/* 嵌入 sideMain 后收窄原控制台的上下留白 */
+.sideMain .dashboard {
+  padding: 0 0 30px;
+}
+
+/* 概览页快捷入口按钮排布 */
+.quickLinks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 订单 / 文章行内的徽标与操作区 */
+.rowBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rowActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.rowActions a {
+  font-size: var(--fs-sm);
+  padding: 5px 10px;
+}
+
+/* ---------- Markdown 编辑器（功能 B） ---------- */
+.editor {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.editorBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.editorTools,
+.editorTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.editorTools button,
+.editorTabs button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editorTools button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.editorTabs button.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--text-invert);
+}
+
+.editor > textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  resize: vertical;
+  padding: 16px 18px;
+  font: 14px/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.editorPreview {
+  padding: 18px 20px;
+  min-height: 200px;
+  max-height: 540px;
+  overflow: auto;
+}
+
+/* 编辑器预览区的排版（renderMarkdown 输出的裸 HTML） */
+.md {
+  font-size: calc(var(--fs-md) + 1px);
+  line-height: 1.8;
+}
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md h1,
+.md h2,
+.md h3 {
+  font-family: var(--font-serif);
+  line-height: 1.3;
+  margin: 22px 0 10px;
+}
+
+.md h1 {
+  font-size: 26px;
+}
+
+.md h2 {
+  font-size: 21px;
+}
+
+.md h3 {
+  font-size: 17px;
+}
+
+.md p {
+  margin: 10px 0;
+}
+
+.md code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.md pre {
+  background: var(--ink);
+  color: var(--text-invert);
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  overflow: auto;
+}
+
+.md pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.md blockquote {
+  margin: 12px 0;
+  padding: 4px 0 4px 14px;
+  border-left: 3px solid var(--lime);
+  color: var(--text-soft);
+}
+
+.md ul,
+.md ol {
+  margin: 10px 0;
+  padding-left: 24px;
+}
+
+.md a {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.md hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 20px 0;
+}
+
+/* ---------- 合伙人计划设置（创作者端） ---------- */
+.partnerForm {
+  display: grid;
+  gap: var(--sp-3);
+  align-content: start;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--lime);
+}
+
+/* ---------- 合伙人榜单时段切换 ---------- */
+.rangeBar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-4);
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--text-invert);
+}
+
+/* ---------- 二维码（分销中心） ---------- */
+.qrBox {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 8px;
+  line-height: 0;
+}
+
+.qrBox svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.qrCenter {
+  display: block;
+  width: 148px;
+  margin: 14px auto 6px;
+}
+
+.qrCard {
+  display: block;
+  width: 104px;
+  margin: 6px auto;
+}
+
+.rateTag {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--accent-ink);
+  background: var(--lime-soft);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.rateTag.muted {
+  color: var(--text-mute);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ---------- 钱包提现（合伙人端） ---------- */
+.withdrawForm {
+  display: grid;
+  gap: var(--sp-3);
+  align-content: start;
+}
+
+.withdrawPreview {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+  background: var(--lime-soft);
+  padding: 14px 16px;
+  border-radius: var(--r-lg);
+  font-size: var(--fs-sm);
+}
+
+.withdrawPreview span {
+  color: var(--text-soft);
+}
+
+.withdrawPreview b {
+  font: 700 18px var(--font-serif);
+  color: var(--ink);
+  text-align: right;
+}
+
+.withdrawPreview b.net {
+  color: var(--accent-ink);
+}
+
+/* ---------- 响应式：中间断点（平板） ---------- */
+@media (max-width: 1024px) {
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .manage {
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: var(--sp-4);
+  }
+}
+
+/* ---------- 响应式：移动断点（单列） ---------- */
+@media (max-width: 760px) {
+  .dashboard h1,
+  .dashHead h1,
+  .reader h1 {
+    font-size: 46px;
+  }
+
+  .dashHead {
+    align-items: flex-start;
+  }
+
+  .metrics,
+  .catalog {
+    grid-template-columns: 1fr;
+  }
+
+  .notice {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+
+  .notice span {
+    margin-right: 0;
+  }
+
+  .manage {
+    grid-template-columns: 1fr;
+  }
+
+  .manage form {
+    grid-template-columns: 1fr;
+  }
+
+  .manage textarea {
+    grid-column: auto;
+  }
+
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* 侧边栏 shell 变横向顶栏 */
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px 18px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sideBrand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .sideNav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .sideNav a {
+    border-left: none;
+    border-radius: 10px;
+    padding: 7px 12px;
+  }
+
+  .sideNav a.active {
+    border-left: none;
+  }
+
+  .sideFoot {
+    margin-top: 0;
+  }
+
+  .sideMain {
+    padding: 20px 18px 70px;
+  }
+
+  .rowActions {
+    justify-content: flex-start;
+  }
+
+  /* 编辑器 textarea 14px 会触发 iOS 聚焦自动放大，手机端提到 16px */
+  .editor > textarea {
+    font-size: 16px;
+  }
+
+  .editorTools button,
+  .editorTabs button {
+    padding: 7px 11px;
+  }
+
+  .metrics b {
+    font-size: 30px;
+  }
+
+  .dashboard h1,
+  .dashHead h1 {
+    font-size: 34px;
+  }
+}
+
+/* ---------- 响应式：小屏断点（手机竖屏 ≤480px） ---------- */
+@media (max-width: 480px) {
+  .dashboard h1,
+  .dashHead h1 {
+    font-size: 29px;
+  }
+
+  .sidebar {
+    padding: 14px 16px;
+  }
+
+  .sideBrand b {
+    font-size: 18px;
+  }
+
+  .sideNav a {
+    padding: 8px 12px;
+    font-size: var(--fs-base);
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .notice {
+    padding: var(--sp-4);
+  }
+
+  .row {
+    font-size: var(--fs-sm);
+  }
+
+  .rowActions a {
+    padding: 8px 12px;
+  }
+
+  .editorPreview {
+    padding: 14px;
+  }
+}

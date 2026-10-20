@@ -1,0 +1,17 @@
+# ===========================================================================
+# UniCRM · Caddy 自动 HTTPS 反代（可选）
+# 用法：docker-compose.yml 取消 caddy 注释，并将本文件放到仓库根 Caddyfile。
+# 把 crm.example.com 换成你的域名，Caddy 会自动申请 / 续期 Let's Encrypt 证书。
+# ===========================================================================
+
+crm.example.com {
+    # 反向代理到 compose 网络内的 app 服务
+    reverse_proxy app:81
+
+    # 如 UniCRM 在子路径运行可改为：reverse_proxy /api/* app:81
+    encode gzip
+
+    # 可选：限制来源 IP
+    # @allowed remote_ip 1.2.3.4/32
+    # respond @allowed 403
+}

@@ -1,0 +1,53 @@
+const products = [
+  {
+    slug: 'account-audit',
+    name: '小红书账号诊断',
+    price: 99,
+    priceCents: 9900,
+    eyebrow: '24小时交付',
+    summary: '找出账号最影响咨询的3个问题，给出一个优先修改动作。',
+    audience: '适合已经发过内容，但咨询和成交仍为0的商家。',
+    deliverables: ['账号定位与主页检查', '3个关键问题', '1个优先修改动作'],
+    preview: '试看：诊断先检查客户、购买时刻、主页承诺和咨询入口，不用点赞代替成交。',
+    content: '会员内容：提交账号链接、目标客户和当前成交数据后，24小时内收到诊断清单。',
+  },
+  {
+    slug: 'content-plan',
+    name: '小红书内容方案',
+    price: 299,
+    priceCents: 29900,
+    eyebrow: '可直接发布',
+    summary: '围绕一个真实购买场景，交付选题、成稿和咨询承接建议。',
+    audience: '适合产品明确，但不知道如何把内容写成购买入口的商家。',
+    deliverables: ['3个精准选题', '1篇完整成稿', '1套咨询承接建议'],
+    preview: '试看：一篇内容只服务一个买家、一个问题和一个行动入口。',
+    content: '会员内容：提交产品、价格和目标客户后，获得3个选题、1篇成稿与承接建议。',
+  },
+  {
+    slug: 'growth-sprint',
+    name: '7天获客冲刺',
+    price: 1999,
+    priceCents: 199900,
+    eyebrow: '人工共创',
+    summary: '连续7天验证内容到咨询的路径，用真实业务结果决定下一轮。',
+    audience: '适合愿意提供真实数据，并能每天配合执行和复盘的本地商家。',
+    deliverables: ['3篇场景内容', '咨询话术', '7天数据复盘'],
+    preview: '试看：成功证据按付款、报价、有效咨询、场景私信排序，点赞不算订单。',
+    content: '会员内容：冲刺开始前确认唯一产品、目标客户、交付时间与停止条件。',
+  },
+  {
+    slug: 'monthly-member',
+    name: '月度会员',
+    price: 99,
+    priceCents: 9900,
+    eyebrow: '30天会员',
+    summary: '持续获取会员内容，每次购买从当前有效期顺延30天。',
+    audience: '适合需要持续更新选题、承接方法和实操模板的商家。',
+    deliverables: ['会员内容库', '持续更新模板', '30天访问权限'],
+    preview: '试看：会员内容围绕真实咨询与成交证据更新，不用虚假销量包装效果。',
+    content: '会员内容：本月新增获客选题、咨询承接模板和成交复盘清单。',
+  },
+]
+
+export function getProducts() { return products }
+export function getProduct(slug) { return products.find(product => product.slug === slug) }

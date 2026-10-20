@@ -1,0 +1,19 @@
+# 敏感配置（勿提交）
+.env
+config.yaml
+
+# 本地数据（运行时生成）
+data/*.csv
+data/daily-metrics/
+archive/*/
+backups/
+scripts/.publish_queue.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 系统
+.DS_Store
+Thumbs.db

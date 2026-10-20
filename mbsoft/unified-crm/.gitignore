@@ -1,0 +1,31 @@
+# dependencies / build
+node_modules/
+packages/db/src/generated/
+.pnpm-store/
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+.env.docker
+!.env.example
+!.env.docker.example
+
+# database (sqlite dev)
+*.db
+*.db-journal
+packages/db/prisma/dev.db*
+
+# logs & misc
+*.log
+.DS_Store
+coverage/
+.vercel
+
+# agent workspace（本地记忆/会话数据，不入库）
+.workbuddy/

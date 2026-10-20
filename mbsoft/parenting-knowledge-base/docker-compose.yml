@@ -1,0 +1,58 @@
+services:
+  app:
+    build: .
+    image: parenting-knowledge-base:latest
+    container_name: parenting-kb
+    restart: unless-stopped
+    ports:
+      # ① 域名 HTTP 直连：浏览器访问 http://baby.mingboai.com 默认走 80。
+      #    ⚠️ 宿主机已装 Nginx / 宝塔 / Apache 时，80 已被占用 —— 必须保持下面这行注释，
+      #       否则容器启动会报：bind: address already in use
+      #       （判据：ss -tlnp | grep ':80 ' 看是谁占了）
+      #       此时走「Web 服务器反代 80 → 127.0.0.1:3100」，见 deploy/nginx/。
+      #    只有裸机（没装任何 Web 服务器）时才打开这行：
+      # - "${KB_HTTP_PORT:-80}:3100"
+      #
+      # ② 应用原端口：始终保留，反代的 upstream 与直连调试都用它。
+      #    默认监听所有网卡；反代跑通后可收紧为只听回环更安全：
+      #      echo 'KB_HOST_PORT=127.0.0.1:3100' >> .env && docker compose up -d
+      #
+      # ⚠️ 443 不要往这里映射：容器内是纯 HTTP 服务，映射 443 会导致
+      #    https 握手直接失败。HTTPS 必须由 Nginx 终结 TLS 后再反代到 3100。
+      # ⚠️ 云服务器需在安全组放行：80（HTTP）/ 443（HTTPS）/ 3100（直连调试）。
+      - "${KB_HOST_PORT:-3100}:3100"
+    environment:
+      NODE_ENV: production
+      PORT: "3100"
+      HOSTNAME: "0.0.0.0"
+      # SQLite 数据目录（默认就是 <工作目录>/data，这里写明确，避免换工作目录时丢库）
+      KB_DATA_DIR: /app/data
+      # 打卡日期按本地日界计算，容器内必须是东八区，否则跨天判定会偏 8 小时
+      TZ: Asia/Shanghai
+      # ---- AI 助手（可选）----
+      # 不配也能正常跑，只是前台右下角不会出现聊天入口。
+      # 密钥建议放在同目录的 .env 里（该文件已被 .gitignore 排除），这里只做变量透传：
+      #   echo 'LLM_API_KEY=sk-xxxx' >> .env
+      # 后台 /admin/settings 里手填的配置优先级更高（已填则忽略这里的环境变量）。
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_ENABLED: ${LLM_ENABLED:-}
+    volumes:
+      # SQLite 数据持久化：删除容器不丢会员/教程/授权卡数据
+      - kb-data:/app/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3100/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 25s
+      retries: 3
+
+volumes:
+  kb-data:

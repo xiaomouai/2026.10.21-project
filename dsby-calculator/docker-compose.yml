@@ -1,0 +1,31 @@
+services:
+  dsby-calculator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dsby-calculator:latest
+    container_name: dsby-calculator
+    ports:
+      - "82:82"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - HOSTNAME=0.0.0.0
+      - PORT=82
+      - DB_PATH=/app/data/dsby.db
+      # 从本地 .env 读取初始管理员密码与 JWT 签名密钥
+      # 注意：ADMIN_USER / ADMIN_PASS 仅在数据库为空时生效（首次种子）
+      - ADMIN_USER=admin
+      - ADMIN_PASS=${ADMIN_PASS:?Set ADMIN_PASS in .env}
+      - SESSION_SECRET=${SESSION_SECRET:?Set SESSION_SECRET in .env}
+    volumes:
+      # 宿主机 ./data 存 SQLite；容器内 nextjs(uid 1001) 需可写
+      - ./data:/app/data
+    # 端口探活：容器 tcp 82 可连即健康（不依赖业务接口返回内容）
+    healthcheck:
+      test: ["CMD", "node", "-e", "net.connect(process.env.PORT||82,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

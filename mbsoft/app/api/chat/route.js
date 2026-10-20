@@ -1,0 +1,3 @@
+import { NextResponse } from 'next/server'
+const roles = { CEO:['确定本轮唯一商业目标','检查收入、线索和交付证据','选择下一条最小实验'], 市场:['确认目标买方和触发场景','整理真实证据与反例','输出一个可验证市场假设'], 内容:['围绕一个买方痛点写内容草稿','绑定产品承诺和行动入口','提交人工审核后再发布'], 销售:['跟进新线索','确认需求、预算和决策权','发出窄报价并记录结果'], 研发:['把已验证需求拆成最小交付','检查版本和验收标准','只做影响成交或交付的功能'], 客户成功:['确认客户是否拿到承诺结果','记录反馈和风险','判断复购、转介绍或退款'], 财务:['登记收入、成本和应收','核对到账证据','计算本轮净现金与投入回报'] }
+export async function POST(request) { const { role='CEO', message='' } = await request.json(); const tasks=roles[role]||roles.CEO; return NextResponse.json({role,message,reply:`${role}工作安排：\n1. ${tasks[0]}\n2. ${tasks[1]}\n3. ${tasks[2]}\n\n今日产物：一张可检查的任务卡，包含负责人、截止时间、证据和下一步。\n人工门禁：公开发布、报价、退款和“已付款”确认必须由你确认。`,source:'opc-skills/ai-super-individual，本地确定性工作流'}) }

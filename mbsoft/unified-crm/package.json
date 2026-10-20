@@ -1,0 +1,37 @@
+{
+  "name": "unified-crm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UniCRM · 面向中小企业的 SaaS CRM（整合 crm/ Comp AI 与 nextcrm-app 两套源码的统一骨架）",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @ucrm/web dev",
+    "build": "pnpm --filter @ucrm/web build",
+    "start": "pnpm --filter @ucrm/web start",
+    "lint": "pnpm --filter @ucrm/web lint",
+    "db:generate": "pnpm --filter @ucrm/db db:generate",
+    "db:migrate": "pnpm --filter @ucrm/db db:migrate",
+    "db:seed": "pnpm --filter @ucrm/db db:seed",
+    "db:studio": "pnpm --filter @ucrm/db db:studio",
+    "db:reset": "pnpm --filter @ucrm/db db:reset",
+    "check-types": "pnpm -r check-types",
+    "verify:crm": "NODE_OPTIONS=--conditions=react-server pnpm --filter @ucrm/db exec tsx --tsconfig ../../apps/web/tsconfig.scripts.json ../../apps/web/scripts/verify-crm.mts"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "better-sqlite3",
+      "esbuild",
+      "@tailwindcss/oxide"
+    ]
+  }
+}
